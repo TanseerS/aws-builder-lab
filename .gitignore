@@ -1,0 +1,79 @@
+# --- macOS ---
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# --- Terraform ---
+# Local state files (may contain secrets)
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Provider plugins, modules, lock dirs
+**/.terraform/*
+.terraform.lock.hcl
+
+# Variable files that commonly hold secrets
+*.tfvars
+*.tfvars.json
+!example.tfvars
+!*.auto.tfvars.example
+
+# CLI config / plan output
+.terraformrc
+terraform.rc
+*.tfplan
+*.tfplan.*
+plan.out
+
+# --- Python / Lambda ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Lambda build artifacts
+*.zip
+lambda/package/
+lambda/build/
+
+# --- Node (if any tooling gets added) ---
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# --- Secrets / credentials ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials
+aws-credentials*
+
+# --- Editors / IDEs ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- Logs & temp ---
+*.log
+tmp/
+.tmp/
