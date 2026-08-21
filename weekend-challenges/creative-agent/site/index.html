@@ -123,7 +123,8 @@
     <p>
       An always-on creative agent. Every day, without anyone asking, it checks
       the sky, paints a new abstract artwork with Amazon Nova Canvas, and
-      writes a short poem with Amazon Nova Micro to match the mood. Its
+      writes a short poem with Amazon Nova Micro to match the mood. Artwork
+      appears here when image generation is enabled. Its
       style slowly evolves — come back tomorrow and it will look and sound
       a little different.
     </p>
@@ -155,7 +156,9 @@
         }
         gallery.innerHTML = items.map(item => `
           <div class="card">
-            <img src="${item.image}" alt="Generative artwork for ${item.date}" loading="lazy" />
+            ${item.image
+              ? `<img src="${item.image}" alt="Generative artwork for ${item.date}" loading="lazy" />`
+              : ''}
             <div class="body">
               <div class="meta">
                 <span>${item.day}, ${item.date}</span>

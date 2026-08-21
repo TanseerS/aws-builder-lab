@@ -8,7 +8,8 @@ Every day, with no human involved, this agent:
 2. Picks the next style in a slowly rotating palette (watercolor → ukiyo-e →
    cyberpunk neon → art deco → impressionist → pixel art → cosmic surrealism →
    ink wash → repeat), so its visual "voice" evolves over time.
-3. Asks **Stability Stable Image Core** (Bedrock) to paint an abstract artwork themed
+3. *(Optional, off by default)* Asks **Stability Stable Image Core** (Bedrock)
+   to paint an abstract artwork themed
    to today's weather + style.
 4. Asks **Amazon Nova Micro** (Bedrock) to write a short poem in the same mood.
 5. Saves everything to S3. A static gallery page reads `manifest.json` and
@@ -23,7 +24,8 @@ Every day, with no human involved, this agent:
    AWS Lambda (Python 3.12) ──► Open-Meteo API (weather)
         │        │
         │        ├──► Amazon Bedrock: Stable Image Core (image, us-west-2)
-        │        └──► Amazon Bedrock: Nova Micro        (poem)
+        │        │      └─ opt-in: enable_image_generation = true
+        │        └──► Amazon Bedrock: Nova Micro        (poem, always on)
         ▼
    S3 bucket (static website hosting)
         ├── index.html        (gallery UI)
@@ -46,10 +48,17 @@ All resources are provisioned by Terraform. No servers to manage.
    subscription for it.
 2. **Enable Bedrock model access** (one-time, per account/region, usually
    instant): AWS Console → Amazon Bedrock → Model access → request access to
-   **Amazon Nova Micro** in the region you deploy to (default `us-east-1`),
-   and **Stable Image Core** in `image_model_region` (default `us-west-2`).
-   The image model lives in its own region because Bedrock does not offer an
-   active text-to-image model in every region.
+   **Amazon Nova Micro** in the region you deploy to (default `us-east-1`).
+   That is all the default (poem-only) configuration needs.
+
+   To also generate artwork, set `enable_image_generation = true` and enable
+   **Stable Image Core** in `image_model_region` (default `us-west-2`). The
+   image model lives in its own region because Bedrock offers no active
+   text-to-image model in every region. Be aware that every Bedrock
+   text-to-image model is a third-party AWS Marketplace subscription — the
+   only Amazon-native option, Nova Canvas, is retired (`LEGACY`) and refuses
+   new callers. So the account needs a **valid payment method**, or invocations
+   fail with `INVALID_PAYMENT_INSTRUMENT` after a single initial success.
 3. [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5
 4. AWS CLI configured (`aws configure`) with credentials that can create
    IAM roles, Lambda functions, S3 buckets, and EventBridge schedules.

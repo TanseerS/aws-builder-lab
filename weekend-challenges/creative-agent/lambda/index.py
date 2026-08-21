@@ -7,8 +7,10 @@ it:
      key-less Open-Meteo API.
   2. Rotates through an evolving list of art styles (so the agent's
      visual "voice" changes over time).
-  3. Asks a Stability text-to-image model (Bedrock) to paint an
-     abstract artwork themed to today's weather + art style.
+  3. Optionally (ENABLE_IMAGE_GENERATION=true) asks a Stability
+     text-to-image model (Bedrock) to paint an abstract artwork themed
+     to today's weather + art style. Off by default: those models all
+     require a paid AWS Marketplace subscription.
   4. Asks Amazon Nova Micro (Bedrock) to write a short poem in the same
      mood.
   5. Stores the image + a running manifest.json in S3, which the static
@@ -42,6 +44,12 @@ TEXT_MODEL_ID = os.environ.get("TEXT_MODEL_ID", "amazon.nova-micro-v1:0")
 # bedrock-runtime client. The text model runs in the Lambda's own region.
 IMAGE_REGION = os.environ.get("IMAGE_MODEL_REGION", "us-west-2")
 IMAGE_ASPECT_RATIO = os.environ.get("IMAGE_ASPECT_RATIO", "1:1")
+
+# Every Bedrock text-to-image model needs a paid AWS Marketplace
+# subscription (Nova Canvas, the one Amazon-native option, is retired).
+# With that unavailable the agent still runs as a poem-only journal, so
+# image generation is behind a flag rather than deleted.
+ENABLE_IMAGE = os.environ.get("ENABLE_IMAGE_GENERATION", "false").lower() == "true"
 
 bedrock_image = boto3.client("bedrock-runtime", region_name=IMAGE_REGION)
 bedrock_text = boto3.client("bedrock-runtime")
@@ -187,20 +195,22 @@ def handler(event, context):
         "no text, no watermark, no words, high detail, artistic composition"
     )
 
-    seed = random.randint(0, 2_147_483_646)
-    image_bytes = generate_image(image_prompt, seed)
     poem = generate_poem(
         weather["description"], weather["temperature"], style, day_name
     )
 
     date_str = today.isoformat()
-    image_key = f"art/{date_str}.png"
-    s3.put_object(
-        Bucket=BUCKET,
-        Key=image_key,
-        Body=image_bytes,
-        ContentType="image/png",
-    )
+    image_key = None
+    if ENABLE_IMAGE:
+        seed = random.randint(0, 2_147_483_646)
+        image_bytes = generate_image(image_prompt, seed)
+        image_key = f"art/{date_str}.png"
+        s3.put_object(
+            Bucket=BUCKET,
+            Key=image_key,
+            Body=image_bytes,
+            ContentType="image/png",
+        )
 
     manifest = get_manifest()
     # Replace today's entry if the function runs more than once on the
@@ -209,7 +219,7 @@ def handler(event, context):
     manifest.insert(0, {
         "date": date_str,
         "day": day_name,
-        "image": image_key,
+        "image": image_key,  # None when image generation is disabled
         "poem": poem,
         "style": style,
         "weather": weather["description"],
@@ -224,5 +234,10 @@ def handler(event, context):
 
     return {
         "statusCode": 200,
-        "body": json.dumps({"date": date_str, "image": image_key, "style": style}),
+        "body": json.dumps({
+            "date": date_str,
+            "image": image_key,
+            "style": style,
+            "imageEnabled": ENABLE_IMAGE,
+        }),
     }

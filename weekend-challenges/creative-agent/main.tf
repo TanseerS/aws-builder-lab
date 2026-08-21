@@ -149,14 +149,15 @@ resource "aws_lambda_function" "agent" {
 
   environment {
     variables = {
-      BUCKET_NAME        = aws_s3_bucket.gallery.id
-      LOCATION_NAME      = var.location_name
-      LATITUDE           = var.latitude
-      LONGITUDE          = var.longitude
-      IMAGE_MODEL_ID     = var.image_model_id
-      IMAGE_MODEL_REGION = var.image_model_region
-      IMAGE_ASPECT_RATIO = var.image_aspect_ratio
-      TEXT_MODEL_ID      = var.text_model_id
+      BUCKET_NAME             = aws_s3_bucket.gallery.id
+      LOCATION_NAME           = var.location_name
+      LATITUDE                = var.latitude
+      LONGITUDE               = var.longitude
+      ENABLE_IMAGE_GENERATION = tostring(var.enable_image_generation)
+      IMAGE_MODEL_ID          = var.image_model_id
+      IMAGE_MODEL_REGION      = var.image_model_region
+      IMAGE_ASPECT_RATIO      = var.image_aspect_ratio
+      TEXT_MODEL_ID           = var.text_model_id
     }
   }
 

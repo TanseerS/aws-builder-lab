@@ -28,6 +28,12 @@ variable "longitude" {
   default     = "73.7898"
 }
 
+variable "enable_image_generation" {
+  description = "Generate artwork alongside the poem. Off by default: every Bedrock text-to-image model requires a paid AWS Marketplace subscription, so the agent runs poem-only until that is set up."
+  type        = bool
+  default     = false
+}
+
 variable "image_model_id" {
   description = "Bedrock model id used for image generation."
   type        = string
