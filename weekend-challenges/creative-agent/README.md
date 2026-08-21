@@ -40,8 +40,10 @@ All resources are provisioned by Terraform. No servers to manage.
    CloudWatch Logs invocations here are all well within Free Tier limits;
    Bedrock model invocations are billed per request but are inexpensive,
    a few cents per day at most for one image + one short poem).
-   Note the image model is a Stability model, billed through AWS Marketplace,
-   so the account needs a valid payment method on file.
+   Note the image model is a Stability model, billed through AWS Marketplace
+   at $0.04 per generated image (~$1.20/month at one image per day), so the
+   account needs a valid payment method and a completed Marketplace
+   subscription for it.
 2. **Enable Bedrock model access** (one-time, per account/region, usually
    instant): AWS Console → Amazon Bedrock → Model access → request access to
    **Amazon Nova Micro** in the region you deploy to (default `us-east-1`),
