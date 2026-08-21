@@ -452,22 +452,3 @@ that `terraform destroy` will then silently delete every generated poem and
 artwork.
 
 ---
-
-## Notes for the Builder Center Submission
-
-- **Article:** use [`article-draft.md`](article-draft.md) as a starting point —
-  fill in the sections marked `TODO`, add a screenshot of the deployed gallery,
-  then publish on AWS Builder Center with the title and `agents` tag specified
-  in the challenge rules.
-- **Evidence of autonomous output:** after `terraform apply`, wait a day (or
-  temporarily set `schedule_expression = "rate(1 hour)"`) and capture a
-  screenshot showing two different dated entries in the gallery, plus a
-  CloudWatch Logs screenshot of a **Scheduler-triggered** invocation rather than
-  a manual one. That is the strongest evidence for the *Relevance &
-  Functionality* judging category.
-- **AWS services used:** Lambda, Amazon Bedrock (Nova Micro; Stable Image Core
-  optional), S3 (storage + static website hosting), EventBridge Scheduler, IAM,
-  CloudWatch Logs.
-- **Infrastructure as code:** Terraform, `hashicorp/aws ~> 5.0`.
-- **Third-party:** [Open-Meteo](https://open-meteo.com/) for weather — free, no
-  API key, no account.
