@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Weather Muse — An Autonomous Creative Agent</title>
+<style>
+  :root {
+    --bg: #0b0d14;
+    --card: #141826;
+    --text: #eef0f6;
+    --muted: #9aa3b8;
+    --accent: #7ad0ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(circle at top, #1a1f33 0%, var(--bg) 60%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 48px 20px 80px;
+  }
+  header {
+    max-width: 900px;
+    margin: 0 auto 48px;
+    text-align: center;
+  }
+  header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, #7ad0ff, #c48bff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 620px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+  .badge {
+    display: inline-block;
+    margin-top: 14px;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(122, 208, 255, 0.35);
+    padding: 4px 12px;
+    border-radius: 999px;
+  }
+  #gallery {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 28px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+  }
+  .card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+    background: #1a1f33;
+  }
+  .card .body {
+    padding: 18px 20px 22px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card .meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .card .poem {
+    font-style: italic;
+    line-height: 1.6;
+    white-space: pre-line;
+    font-size: 0.95rem;
+  }
+  .card .style-tag {
+    align-self: flex-start;
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: rgba(122, 208, 255, 0.1);
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  #empty, #loading {
+    text-align: center;
+    color: var(--muted);
+    margin-top: 60px;
+  }
+  footer {
+    text-align: center;
+    margin-top: 60px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>The Weather Muse</h1>
+    <p>
+      An always-on creative agent. Every day, without anyone asking, it checks
+      the sky, paints a new abstract artwork with Amazon Nova Canvas, and
+      writes a short poem with Amazon Nova Micro to match the mood. Its
+      style slowly evolves — come back tomorrow and it will look and sound
+      a little different.
+    </p>
+    <span class="badge">Autonomous · Powered by Amazon Bedrock</span>
+  </header>
+
+  <div id="loading">Loading today's creations…</div>
+  <div id="empty" style="display:none;">
+    No creations yet — the agent hasn't run for the first time. Trigger the
+    Lambda once, or wait for the next scheduled run.
+  </div>
+  <div id="gallery"></div>
+
+  <footer>Built with AWS Lambda, EventBridge Scheduler, Amazon Bedrock (Nova) &amp; S3 · Weekend Creative Agent Challenge</footer>
+
+  <script>
+    async function loadGallery() {
+      const loading = document.getElementById('loading');
+      const empty = document.getElementById('empty');
+      const gallery = document.getElementById('gallery');
+      try {
+        const res = await fetch('manifest.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('no manifest yet');
+        const items = await res.json();
+        loading.style.display = 'none';
+        if (!items.length) {
+          empty.style.display = 'block';
+          return;
+        }
+        gallery.innerHTML = items.map(item => `
+          <div class="card">
+            <img src="${item.image}" alt="Generative artwork for ${item.date}" loading="lazy" />
+            <div class="body">
+              <div class="meta">
+                <span>${item.day}, ${item.date}</span>
+                <span>${item.weather} · ${item.temperature}°C</span>
+              </div>
+              <div class="poem">${item.poem}</div>
+              <span class="style-tag">${item.style}</span>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        loading.style.display = 'none';
+        empty.style.display = 'block';
+      }
+    }
+    loadGallery();
+  </script>
+</body>
+</html>

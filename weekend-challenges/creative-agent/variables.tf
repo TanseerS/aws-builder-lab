@@ -1,0 +1,59 @@
+variable "aws_region" {
+  description = "AWS region to deploy into. Must have Bedrock Nova Canvas + Nova Micro model access enabled."
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "project_name" {
+  description = "Prefix used for naming all resources."
+  type        = string
+  default     = "weather-muse-agent"
+}
+
+variable "location_name" {
+  description = "Human-readable location the agent themes its art/poems on."
+  type        = string
+  default     = "Nashik"
+}
+
+variable "latitude" {
+  description = "Latitude for the Open-Meteo weather lookup."
+  type        = string
+  default     = "19.9975"
+}
+
+variable "longitude" {
+  description = "Longitude for the Open-Meteo weather lookup."
+  type        = string
+  default     = "73.7898"
+}
+
+variable "image_model_id" {
+  description = "Bedrock model id used for image generation."
+  type        = string
+  default     = "amazon.nova-canvas-v1:0"
+}
+
+variable "text_model_id" {
+  description = "Bedrock model id used for poem generation."
+  type        = string
+  default     = "amazon.nova-micro-v1:0"
+}
+
+variable "schedule_expression" {
+  description = "EventBridge Scheduler expression controlling how often the agent runs autonomously."
+  type        = string
+  default     = "rate(1 day)"
+}
+
+variable "trigger_initial_run" {
+  description = "If true, Terraform invokes the Lambda once right after deployment so the gallery isn't empty."
+  type        = bool
+  default     = true
+}
+
+variable "log_retention_days" {
+  description = "CloudWatch Logs retention for the Lambda function."
+  type        = number
+  default     = 14
+}
