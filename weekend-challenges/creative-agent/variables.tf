@@ -1,5 +1,5 @@
 variable "aws_region" {
-  description = "AWS region to deploy into. Must have Bedrock Nova Canvas + Nova Micro model access enabled."
+  description = "AWS region to deploy into. Must have Bedrock access enabled for the text model (see image_model_region for the image model)."
   type        = string
   default     = "us-east-1"
 }
@@ -31,7 +31,19 @@ variable "longitude" {
 variable "image_model_id" {
   description = "Bedrock model id used for image generation."
   type        = string
-  default     = "amazon.nova-canvas-v1:0"
+  default     = "stability.stable-image-core-v1:1"
+}
+
+variable "image_model_region" {
+  description = "Region to call the image model in. Bedrock does not offer the text-to-image models in every region, so this is separate from aws_region."
+  type        = string
+  default     = "us-west-2"
+}
+
+variable "image_aspect_ratio" {
+  description = "Aspect ratio for generated art. Stability text-to-image models take a ratio rather than explicit pixel dimensions."
+  type        = string
+  default     = "1:1"
 }
 
 variable "text_model_id" {

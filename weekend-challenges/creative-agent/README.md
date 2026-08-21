@@ -8,7 +8,7 @@ Every day, with no human involved, this agent:
 2. Picks the next style in a slowly rotating palette (watercolor → ukiyo-e →
    cyberpunk neon → art deco → impressionist → pixel art → cosmic surrealism →
    ink wash → repeat), so its visual "voice" evolves over time.
-3. Asks **Amazon Nova Canvas** (Bedrock) to paint an abstract artwork themed
+3. Asks **Stability Stable Image Core** (Bedrock) to paint an abstract artwork themed
    to today's weather + style.
 4. Asks **Amazon Nova Micro** (Bedrock) to write a short poem in the same mood.
 5. Saves everything to S3. A static gallery page reads `manifest.json` and
@@ -22,8 +22,8 @@ Every day, with no human involved, this agent:
         ▼
    AWS Lambda (Python 3.12) ──► Open-Meteo API (weather)
         │        │
-        │        ├──► Amazon Bedrock: Nova Canvas   (image)
-        │        └──► Amazon Bedrock: Nova Micro     (poem)
+        │        ├──► Amazon Bedrock: Stable Image Core (image, us-west-2)
+        │        └──► Amazon Bedrock: Nova Micro        (poem)
         ▼
    S3 bucket (static website hosting)
         ├── index.html        (gallery UI)
@@ -38,12 +38,16 @@ All resources are provisioned by Terraform. No servers to manage.
 
 1. An AWS account (Free Tier is fine — Lambda, S3, EventBridge Scheduler and
    CloudWatch Logs invocations here are all well within Free Tier limits;
-   Bedrock Nova model invocations are billed per request but are inexpensive,
+   Bedrock model invocations are billed per request but are inexpensive,
    a few cents per day at most for one image + one short poem).
+   Note the image model is a Stability model, billed through AWS Marketplace,
+   so the account needs a valid payment method on file.
 2. **Enable Bedrock model access** (one-time, per account/region, usually
    instant): AWS Console → Amazon Bedrock → Model access → request access to
-   **Amazon Nova Canvas** and **Amazon Nova Micro** in the region you deploy
-   to (default `us-east-1`).
+   **Amazon Nova Micro** in the region you deploy to (default `us-east-1`),
+   and **Stable Image Core** in `image_model_region` (default `us-west-2`).
+   The image model lives in its own region because Bedrock does not offer an
+   active text-to-image model in every region.
 3. [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5
 4. AWS CLI configured (`aws configure`) with credentials that can create
    IAM roles, Lambda functions, S3 buckets, and EventBridge schedules.
@@ -110,6 +114,6 @@ terraform destroy
   a CloudWatch Logs screenshot showing the EventBridge Scheduler-triggered
   invocation (not a manual one) — this is the strongest evidence for the
   "Relevance & Functionality" judging category.
-- **AWS services used**: Lambda, Amazon Bedrock (Nova Canvas, Nova Micro),
+- **AWS services used**: Lambda, Amazon Bedrock (Stable Image Core, Nova Micro),
   S3 (storage + static website hosting), EventBridge Scheduler, IAM,
   CloudWatch Logs.

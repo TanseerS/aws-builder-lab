@@ -129,7 +129,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "bedrock:InvokeModel"
         ],
         Resource = [
-          "arn:aws:bedrock:${var.aws_region}::foundation-model/${var.image_model_id}",
+          "arn:aws:bedrock:${var.image_model_region}::foundation-model/${var.image_model_id}",
           "arn:aws:bedrock:${var.aws_region}::foundation-model/${var.text_model_id}"
         ]
       }
@@ -149,12 +149,14 @@ resource "aws_lambda_function" "agent" {
 
   environment {
     variables = {
-      BUCKET_NAME    = aws_s3_bucket.gallery.id
-      LOCATION_NAME  = var.location_name
-      LATITUDE       = var.latitude
-      LONGITUDE      = var.longitude
-      IMAGE_MODEL_ID = var.image_model_id
-      TEXT_MODEL_ID  = var.text_model_id
+      BUCKET_NAME        = aws_s3_bucket.gallery.id
+      LOCATION_NAME      = var.location_name
+      LATITUDE           = var.latitude
+      LONGITUDE          = var.longitude
+      IMAGE_MODEL_ID     = var.image_model_id
+      IMAGE_MODEL_REGION = var.image_model_region
+      IMAGE_ASPECT_RATIO = var.image_aspect_ratio
+      TEXT_MODEL_ID      = var.text_model_id
     }
   }
 

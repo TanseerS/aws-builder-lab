@@ -7,8 +7,8 @@ it:
      key-less Open-Meteo API.
   2. Rotates through an evolving list of art styles (so the agent's
      visual "voice" changes over time).
-  3. Asks Amazon Nova Canvas (Bedrock) to paint an abstract artwork
-     themed to today's weather + art style.
+  3. Asks a Stability text-to-image model (Bedrock) to paint an
+     abstract artwork themed to today's weather + art style.
   4. Asks Amazon Nova Micro (Bedrock) to write a short poem in the same
      mood.
   5. Stores the image + a running manifest.json in S3, which the static
@@ -28,14 +28,23 @@ import urllib.request
 import boto3
 
 s3 = boto3.client("s3")
-bedrock = boto3.client("bedrock-runtime")
 
 BUCKET = os.environ["BUCKET_NAME"]
 LOCATION_NAME = os.environ.get("LOCATION_NAME", "Nashik")
 LAT = os.environ.get("LATITUDE", "19.9975")
 LON = os.environ.get("LONGITUDE", "73.7898")
-IMAGE_MODEL_ID = os.environ.get("IMAGE_MODEL_ID", "amazon.nova-canvas-v1:0")
+IMAGE_MODEL_ID = os.environ.get(
+    "IMAGE_MODEL_ID", "stability.stable-image-core-v1:1"
+)
 TEXT_MODEL_ID = os.environ.get("TEXT_MODEL_ID", "amazon.nova-micro-v1:0")
+
+# The image model is not offered in every region, so it gets its own
+# bedrock-runtime client. The text model runs in the Lambda's own region.
+IMAGE_REGION = os.environ.get("IMAGE_MODEL_REGION", "us-west-2")
+IMAGE_ASPECT_RATIO = os.environ.get("IMAGE_ASPECT_RATIO", "1:1")
+
+bedrock_image = boto3.client("bedrock-runtime", region_name=IMAGE_REGION)
+bedrock_text = boto3.client("bedrock-runtime")
 
 # The agent slowly cycles through these styles, one per run, so its
 # creative output visibly evolves over the life of the deployment.
@@ -120,24 +129,32 @@ def save_manifest(manifest):
 
 
 def generate_image(prompt, seed):
+    """Render the prompt with a Stability text-to-image model.
+
+    This API takes a flat prompt plus an aspect_ratio (it has no
+    width/height knobs) and answers with base64 PNGs under "images".
+    """
     body = {
-        "taskType": "TEXT_IMAGE",
-        "textToImageParams": {"text": prompt[:1000]},
-        "imageGenerationConfig": {
-            "numberOfImages": 1,
-            "height": 512,
-            "width": 512,
-            "cfgScale": 7.0,
-            "seed": seed,
-        },
+        "prompt": prompt[:1000],
+        "mode": "text-to-image",
+        "aspect_ratio": IMAGE_ASPECT_RATIO,
+        "output_format": "png",
+        # The Stability seed space is narrower than a 32-bit signed int.
+        "seed": seed % 4_294_967_295,
     }
-    response = bedrock.invoke_model(
+    response = bedrock_image.invoke_model(
         modelId=IMAGE_MODEL_ID,
         body=json.dumps(body),
     )
     result = json.loads(response["body"].read())
-    image_b64 = result["images"][0]
-    return base64.b64decode(image_b64)
+
+    # A non-null finish_reason means the model filtered the render, in
+    # which case "images" holds a blank frame rather than artwork.
+    reason = (result.get("finish_reasons") or [None])[0]
+    if reason:
+        raise RuntimeError(f"Image generation was filtered: {reason}")
+
+    return base64.b64decode(result["images"][0])
 
 
 def generate_poem(weather_desc, temperature, style, day_name):
@@ -147,7 +164,7 @@ def generate_poem(weather_desc, temperature, style, day_name):
         f"{weather_desc} {day_name} in {LOCATION_NAME} at {temperature}"
         f"\u00b0C. Let the mood echo a {style} artistic sensibility."
     )
-    response = bedrock.converse(
+    response = bedrock_text.converse(
         modelId=TEXT_MODEL_ID,
         messages=[{"role": "user", "content": [{"text": prompt}]}],
         inferenceConfig={"maxTokens": 150, "temperature": 0.9},
