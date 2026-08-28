@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpsPilot - Autonomous AWS Incident Lifecycle</title>
+  <meta name="description" content="OpsPilot detects incidents, investigates telemetry, correlates infrastructure changes, recommends safe remediation, verifies recovery and generates postmortems.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128680;</text></svg>">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="brand">
+      <h1>OpsPilot</h1>
+      <span class="tagline">From incident detection to verified recovery.</span>
+    </div>
+    <div class="masthead-meta">
+      <span class="env-chip" id="env-chip">loading…</span>
+      <span class="health is-unknown" id="health-pill">
+        <span class="dot"></span><span id="health-text">Connecting…</span>
+      </span>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+
+  <!-- ===================== OVERVIEW ===================== -->
+  <section id="view-list">
+
+    <div class="section">
+      <div class="tiles" id="tiles">
+        <div class="tile"><div class="label">Active Incidents</div><div class="value" id="m-active">–</div></div>
+        <div class="tile"><div class="label">Incidents Today</div><div class="value" id="m-today">–</div></div>
+        <div class="tile"><div class="label">Resolved Today</div><div class="value" id="m-resolved">–</div></div>
+        <div class="tile"><div class="label">Average MTTR</div><div class="value" id="m-mttr">–</div></div>
+        <div class="tile"><div class="label">Auto Remediations</div><div class="value" id="m-remediations">–</div></div>
+      </div>
+    </div>
+
+    <!-- ===================== DEMO LAB ===================== -->
+    <div class="section">
+      <div class="section-head">
+        <h2>Demo Lab</h2>
+        <span class="spacer"></span>
+        <span id="demo-busy" class="hidden"><span class="spinner"></span></span>
+      </div>
+      <div class="panel">
+        <p style="margin:0 0 14px;color:var(--text-muted);font-size:13px;">
+          Inject a controlled failure into the OpsPilot demo application. Each scenario
+          changes real AWS configuration, breaches a real CloudWatch alarm and drives the
+          full incident lifecycle. Nothing outside this deployment's Demo Lab resources
+          can be touched.
+        </p>
+        <div class="demo-grid">
+          <button class="inject" data-scenario="lambda_error">Inject Lambda Error</button>
+          <button class="inject" data-scenario="lambda_latency">Inject High Latency</button>
+          <button class="inject" data-scenario="database_throttle">Inject DB Throttling</button>
+          <button class="inject" data-scenario="application_error">Inject Application Errors</button>
+          <button class="inject" data-scenario="configuration_error">Inject Configuration Failure</button>
+          <button class="reset" id="btn-reset">Reset Environment</button>
+        </div>
+        <div class="demo-status" id="demo-status">
+          <span>Demo Lab status loading…</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== INCIDENTS ===================== -->
+    <div class="section">
+      <div class="section-head">
+        <h2>Incidents</h2>
+        <span class="spacer"></span>
+        <button class="ghost" id="btn-refresh">Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Severity</th>
+              <th>Service</th>
+              <th>Status</th>
+              <th>Detected</th>
+              <th>Root Cause</th>
+              <th>Confidence</th>
+            </tr>
+          </thead>
+          <tbody id="incident-rows">
+            <tr><td colspan="7" class="empty"><span class="spinner"></span> Loading incidents…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ===================== DETAIL ===================== -->
+  <section id="view-detail" class="hidden"></section>
+
+  <footer class="foot">
+    <span>OpsPilot autonomous AWS incident lifecycle</span>
+    <span>Analysis: <code id="foot-model">–</code></span>
+    <span>Region: <code id="foot-region">–</code></span>
+    <span id="foot-refresh">Auto-refreshing every 15s</span>
+  </footer>
+
+</main>
+
+<div class="toast-stack" id="toasts"></div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
